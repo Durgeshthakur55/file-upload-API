@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>File Upload & Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #3b6aa0 0%, #1e3a72 100%);
+      font-family: 'Raleway', sans-serif;
+      color: #27476e;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 32px;
+      box-shadow: 0 8px 40px 2px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1.4px solid rgba(255, 255, 255, 0.26);
+      min-width: 720px; /* Increase width */
+      max-width: 900px; /* Increase max-width */
+      width: 95vw;
+      min-height: 600px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      position: relative;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .content-scroll {
+      padding: 38px 34px 28px 34px;
+      color: #27476e;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      height: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #fff;
+      font-size: 2.1rem;
+      font-weight: 600;
+      margin: 0 0 10px 0;
+      letter-spacing: 0.01em;
+      text-align: center;
+      background: none;
+    }
+
+    .description {
+      color: #fff;
+      margin-bottom: 20px;
+      font-size: 1.06rem;
+      text-align: center;
+    }
+
+    /* Search box styles */
+    #searchInput {
+      margin-bottom: 15px;
+      width: 50%;
+      max-width: 300px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+      outline: none;
+    }
+
+    input[type="file"] {
+      display: block;
+      margin: 0 auto 25px auto;
+      padding: 11px 0;
+      width: 90%;
+      border-radius: 7px;
+      border: none;
+      background: rgba(255, 255, 255, 0.25);
+      color: #27476e;
+      font-size: 1.02rem;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.23s;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    input[type="file"]::file-selector-button {
+      font-family: 'Raleway', sans-serif;
+      padding: 6px 18px;
+      color: #27476e;
+      background: rgba(255, 255, 255, 0.45);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-right: 10px;
+      transition: background 0.25s;
+    }
+    input[type="file"]::file-selector-button:hover {
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    button#uploadBtn {
+      background: #f9b17a;
+      color: #2d3250;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 600;
+      border: none;
+      padding: 13px 40px;
+      border-radius: 8px;
+      font-size: 1.11rem;
+      cursor: pointer;
+      margin: 0 auto 30px auto;
+      display: block;
+      letter-spacing: 0.02em;
+      transition: background 0.22s, color 0.22s;
+      box-shadow: 0 2px 6px 0 #f9b17a36;
+    }
+    button#uploadBtn:hover:not(:disabled) {
+      background: #e09250;
+      color: #fff;
+    }
+    button#uploadBtn:disabled {
+      background: #ffd6b8;
+      color: #888;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #message {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      min-height: 1.4em;
+      color: #27476e;
+    }
+    #message.error { color: #d94d4d; }
+    #message.success { color: #3feb83; }
+
+    #progressContainer {
+      width: 100%;
+      margin: 0 0 10px 0;
+      text-align: left;
+      display: none;
+    }
+    #progressBar {
+      width: 100%;
+      height: 21px;
+      border-radius: 11px;
+      background-color: #eee;
+      accent-color: #f9b17a;
+    }
+    #progressText {
+      margin-left: 7px;
+      font-size: 1.01rem;
+      color: #f9b17a;
+      font-weight: 600;
+    }
+
+    h3 {
+      color: #f9b17a;
+      margin-bottom: 8px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-align: left;
+    }
+
+    .table-scroll-wrapper {
+      max-height: 36vh;
+      overflow-y: auto;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border-radius: 8px;
+      table-layout: fixed;
+      color: #27476e;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      font-family: 'Raleway', sans-serif;
+      word-break: break-word;
+      border-bottom: 1px solid rgba(39, 71, 110, 0.3);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.25);
+      font-weight: 600;
+      border-bottom: 2px solid rgba(39, 71, 110, 0.3);
+      color: #27476e;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td:nth-child(1),
+    td:nth-child(2) {
+      color: #f9b17a;
+    }
+
+    td:nth-child(3),
+    td:nth-child(4) {
+      color: #27476e;
+    }
+
+    td a.view-link {
+      color: #f9b17a;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-right: 10px;
+      font-weight: 600;
+    }
+
+    td button {
+      background: #ff3b3b;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 13px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.22s;
+      letter-spacing: 0.01em;
+      box-shadow: none;
+    }
+    td button:hover {
+      background: #cc2c2c;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content-scroll">
+      <h2>Upload Your Files</h2>
+      <div class="description">(You may select and upload multiple files at once!)</div>
+      <input type="file" id="fileInput" multiple />
+      <button id="uploadBtn">Upload</button>
+      <div id="message"></div>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search by filename..."
+        title="Type to filter files by filename"
+      />
+      <div id="progressContainer">
+        <progress id="progressBar" value="0" max="100"></progress>
+        <span id="progressText"></span>
+      </div>
+      <h3>Uploaded Files</h3>
+      <div class="table-scroll-wrapper">
+        <table id="filesTable" aria-label="List of uploaded files">
+          <thead>
+            <tr>
+              <th style="width: 48%;">Filename</th>
+              <th style="width: 14%;">Size</th>
+              <th style="width: 18%;">Preview</th>
+              <th style="width: 20%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="filesTableBody">
+            <!-- File rows inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const message = document.getElementById('message');
+    const searchInput = document.getElementById('searchInput');
+    const filesTableBody = document.getElementById('filesTableBody');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const backendUrl = 'http://localhost:8083/api/files';
+
+    let allFiles = []; // To store all loaded files for filtering
+
+    async function fetchFiles() {
+      try {
+        const res = await fetch(backendUrl);
+        if (!res.ok) throw new Error('Could not fetch files');
+        allFiles = await res.json();
+        renderFiles(allFiles);
+      } catch (err) {
+        showMessage('Failed to load files: ' + err.message, true);
+      }
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) {
+        return bytes + ' B';
+      } else if (bytes < 1024 * 1024) {
+        return (bytes / 1024).toFixed(2) + ' KB';
+      } else {
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+    }
+
+    function renderFiles(files) {
+      filesTableBody.innerHTML = '';
+      if (files.length === 0) {
+        filesTableBody.innerHTML = '<tr><td colspan="4">No files uploaded yet.</td></tr>';
+        return;
+      }
+      files.forEach(file => {
+        const tr = document.createElement('tr');
+
+        const nameTd = document.createElement('td');
+        nameTd.textContent = file.filename;
+
+        const sizeTd = document.createElement('td');
+        sizeTd.textContent = formatFileSize(file.size);
+
+        const previewTd = document.createElement('td');
+        const viewLink = document.createElement('a');
+        viewLink.href = `${backendUrl}/files/${encodeURIComponent(file.filename)}`;
+        viewLink.textContent = 'View';
+        viewLink.target = '_blank';
+        viewLink.classList.add('view-link');
+        previewTd.appendChild(viewLink);
+
+        const actionTd = document.createElement('td');
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = () => deleteFile(file.filename);
+        actionTd.appendChild(deleteBtn);
+
+        tr.appendChild(nameTd);
+        tr.appendChild(sizeTd);
+        tr.appendChild(previewTd);
+        tr.appendChild(actionTd);
+
+        filesTableBody.appendChild(tr);
+      });
+    }
+
+    async function deleteFile(filename) {
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff3b3b',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`${backendUrl}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+          const text = await res.text();
+          if (res.ok) {
+            Swal.fire('Deleted!', text, 'success');
+            fetchFiles();
+          } else {
+            Swal.fire('Failed!', text || 'Failed to delete.', 'error');
+          }
+        } catch (err) {
+          Swal.fire('Error!', 'Failed to delete record.', 'error');
+        }
+      }
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+      const files = fileInput.files;
+      if (files.length === 0) {
+        showMessage('Please select file(s) first.', true);
+        return;
+      }
+
+      const result = await Swal.fire({
+        title: 'Confirm Upload',
+        text: `Are you sure you want to upload ${files.length} file(s)?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, upload',
+        cancelButtonText: 'Cancel',
+      });
+
+      if (result.isConfirmed) {
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append('files', files[i]);
+        }
+
+        uploadBtn.disabled = true;
+        showMessage('Uploading...', false, false);
+
+        progressContainer.style.display = '';
+        progressBar.value = 0;
+        progressText.textContent = '';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${backendUrl}/upload-multiple`, true);
+
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressBar.value = percent;
+            progressText.textContent = percent + '%';
+          }
+        };
+
+        xhr.onload = () => {
+          uploadBtn.disabled = false;
+          progressContainer.style.display = 'none';
+          if (xhr.status === 200) {
+            showMessage(xhr.responseText, false, true);
+            fetchFiles();
+            fileInput.value = '';
+          } else {
+            showMessage(xhr.responseText || 'Upload failed', true);
+          }
+        };
+
+        xhr.onerror = () => {
+          uploadBtn.disabled = false;
+          progressContainer.style.display = 'none';
+          showMessage('Upload failed: Network error', true);
+        };
+
+        xhr.send(formData);
+      }
+    });
+
+    // Search input filtering
+    searchInput.addEventListener('input', () => {
+      const filter = searchInput.value.toLowerCase();
+      const filteredFiles = allFiles.filter(file => file.filename.toLowerCase().includes(filter));
+      renderFiles(filteredFiles);
+    });
+
+    function showMessage(msg, isError = false, isSuccess = false) {
+      message.textContent = msg;
+      message.className = '';
+      if (isError) message.classList.add('error');
+      if (isSuccess) message.classList.add('success');
+    }
+
+    // Initial load
+    fetchFiles();
+  </script>
+</body>
+</html>
